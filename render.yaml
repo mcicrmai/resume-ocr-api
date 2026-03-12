@@ -1,10 +1,9 @@
 services:
   - type: web
     name: resume-ocr-api
-    runtime: python
-    pythonVersion: 3.11.9 # 👈 add this
+    env: python
+    pythonVersion: 3.11.9
     plan: free
     buildCommand: |
-      apt-get update && apt-get install -y tesseract-ocr
       pip install -r requirements.txt
     startCommand: gunicorn main:app
