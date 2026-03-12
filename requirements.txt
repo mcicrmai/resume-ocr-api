@@ -1,11 +1,4 @@
-<<<<<<< HEAD
 Flask==2.3.3
 pillow==10.0.1
 pytesseract==0.3.11
 gunicorn==20.1.0
-=======
-flask
-pytesseract
-pillow
-gunicorn
->>>>>>> 510ab236c7e59def1a7b46a3ef9990993b234d8f
