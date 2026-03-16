@@ -6,7 +6,7 @@ import os
 import re
 
 app = Flask(__name__)
-CORS(app)  # Enable CORS for all routes
+CORS(app)
 
 # Windows only: set Tesseract path
 if os.name == "nt":
@@ -35,24 +35,22 @@ def extract_worker_details(text):
 
 def extract_employment_history(text):
     history = []
-    # Extract Employment History section
     match = re.search(r"Employment History(.*)", text, re.DOTALL | re.IGNORECASE)
     if not match:
         return history
-
     section = match.group(1)
 
-    # Extract employers
+    # Employers
     employers = re.findall(r"Employer\s*\d+", section, re.IGNORECASE)
-    employers.reverse()  # Match earliest dates first
+    employers.reverse()  # earliest first
 
-    # Extract all dates
+    # Dates
     dates = re.findall(r"(\d{2}/\d{2}/\d{4})", section)
 
-    # Extract industries
+    # Industries
     industries = re.findall(r"(Construction|Marine|Services|Other)", section, re.IGNORECASE)
 
-    # Pair dates: assume two consecutive dates = start and end
+    # Pair dates: assume consecutive = start & end
     date_pairs = []
     i = 0
     while i < len(dates):
@@ -61,7 +59,6 @@ def extract_employment_history(text):
         date_pairs.append((start_date, end_date))
         i += 2
 
-    # Build history
     for idx, employer in enumerate(employers):
         start_date, end_date = date_pairs[idx] if idx < len(date_pairs) else ("","")
         industry = industries[idx] if idx < len(industries) else "Unknown"
@@ -96,7 +93,6 @@ def ocr():
 def ping():
     return "pong", 200
 
-# --- Main ---
 if __name__ == '__main__':
     port = int(os.environ.get("PORT", 5000))
     app.run(host="0.0.0.0", port=port, debug=True)
