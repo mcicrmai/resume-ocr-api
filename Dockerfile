@@ -17,5 +17,5 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy all project files
 COPY . .
 
-# Start the application using Gunicorn (Production Server)
-CMD ["sh", "-c", "gunicorn main:app --bind 0.0.0.0:${PORT:-5000}"]
+# Start the application. Bind to $PORT provided by Railway.
+CMD ["sh", "-c", "gunicorn main:app --bind 0.0.0.0:${PORT}"]
