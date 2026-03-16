@@ -18,7 +18,6 @@ else:
 
 def extract_worker_details(text):
     details = {}
-    # Enhanced patterns to ensure DOB and other fields are captured correctly
     patterns = {
         "WP_No": r"WP\s*No\.?\s*[:\s]*([0-9\s]+)",
         "Name": r"Name\s*(?:of\s*Worker)?[:\s]*([A-Z\s]+?)(?=\n|DOB|Date|$)",
@@ -33,7 +32,6 @@ def extract_worker_details(text):
         match = re.search(pattern, text, re.IGNORECASE)
         if match:
             value = match.group(1).strip()
-            # Clean up IDs and Numbers
             if key in ["WP_No", "Passport_No", "FIN"]:
                 value = re.sub(r'[^A-Z0-9]', '', value) 
             details[key] = value
@@ -61,7 +59,7 @@ def extract_employment_history(text):
 
 @app.route('/', methods=['GET'])
 def health_check():
-    return jsonify({"status": "healthy", "message": "OCR API is online"}), 200
+    return jsonify({"status": "healthy", "message": "OCR API is online on Port 5000"}), 200
 
 @app.route('/ocr', methods=['POST'])
 def ocr():
@@ -70,7 +68,6 @@ def ocr():
     
     file = next(iter(request.files.values()))
     try:
-        # Pre-process: Grayscale improves OCR for dates
         image = Image.open(file).convert('L')
         text = pytesseract.image_to_string(image)
         
@@ -80,13 +77,12 @@ def ocr():
         return jsonify({
             "status": "success",
             "Worker_Details": worker_details,
-            "Employment_History": employment_history,
-            "raw_text": text
+            "Employment_History": employment_history
         })
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)}), 500
 
 if __name__ == '__main__':
-    # Force the app to use the port provided by Railway
+    # Default to 5000 to match Railway dashboard
     port = int(os.environ.get("PORT", 5000))
     app.run(host="0.0.0.0", port=port)

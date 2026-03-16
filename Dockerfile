@@ -7,7 +7,6 @@ RUN apt-get update && apt-get install -y \
     libtesseract-dev \
     && rm -rf /var/lib/apt/lists/*
 
-# Set up the app directory
 WORKDIR /app
 
 # Install Python dependencies
@@ -17,5 +16,5 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy all project files
 COPY . .
 
-# IMPORTANT: Bind Gunicorn to the dynamic PORT assigned by Railway
-CMD ["sh", "-c", "gunicorn main:app --bind 0.0.0.0:${PORT}"]
+# Force Gunicorn to Port 5000 to match Railway Networking settings
+CMD ["sh", "-c", "gunicorn main:app --bind 0.0.0.0:5000 --timeout 90"]
