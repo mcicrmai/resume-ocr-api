@@ -10,14 +10,15 @@ CORS(app)
 
 # --- ENVIRONMENT DETECTION ---
 if os.name == "nt":
+    # Local Windows Path
     pytesseract.pytesseract.tesseract_cmd = r"C:\Program Files\Tesseract-OCR\tesseract.exe"
 else:
-    # On Railway, the Dockerfile puts tesseract here
+    # Railway/Linux Path
     pytesseract.pytesseract.tesseract_cmd = r'/usr/bin/tesseract'
 
 def extract_worker_details(text):
     details = {}
-    # Patterns adjusted for fuzzy matching (handling spaces, colons, and underscores)
+    # Enhanced patterns to ensure DOB and other fields are captured correctly
     patterns = {
         "WP_No": r"WP\s*No\.?\s*[:\s]*([0-9\s]+)",
         "Name": r"Name\s*(?:of\s*Worker)?[:\s]*([A-Z\s]+?)(?=\n|DOB|Date|$)",
@@ -32,7 +33,7 @@ def extract_worker_details(text):
         match = re.search(pattern, text, re.IGNORECASE)
         if match:
             value = match.group(1).strip()
-            # Clean up IDs (remove spaces/noise) but keep slashes for DOB
+            # Clean up IDs and Numbers
             if key in ["WP_No", "Passport_No", "FIN"]:
                 value = re.sub(r'[^A-Z0-9]', '', value) 
             details[key] = value
@@ -58,6 +59,10 @@ def extract_employment_history(text):
         })
     return history
 
+@app.route('/', methods=['GET'])
+def health_check():
+    return jsonify({"status": "healthy", "message": "OCR API is online"}), 200
+
 @app.route('/ocr', methods=['POST'])
 def ocr():
     if not request.files:
@@ -65,9 +70,9 @@ def ocr():
     
     file = next(iter(request.files.values()))
     try:
-        # Pre-process: Grayscale helps Tesseract distinguish characters better
-        img = Image.open(file).convert('L')
-        text = pytesseract.image_to_string(img)
+        # Pre-process: Grayscale improves OCR for dates
+        image = Image.open(file).convert('L')
+        text = pytesseract.image_to_string(image)
         
         worker_details = extract_worker_details(text)
         employment_history = extract_employment_history(text)
@@ -82,6 +87,6 @@ def ocr():
         return jsonify({"status": "error", "message": str(e)}), 500
 
 if __name__ == '__main__':
-    # Local uses 5000, Railway uses its own $PORT
+    # Force the app to use the port provided by Railway
     port = int(os.environ.get("PORT", 5000))
     app.run(host="0.0.0.0", port=port)

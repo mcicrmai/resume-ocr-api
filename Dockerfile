@@ -17,5 +17,5 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy all project files
 COPY . .
 
-# Start the application. Bind to $PORT provided by Railway.
+# IMPORTANT: Bind Gunicorn to the dynamic PORT assigned by Railway
 CMD ["sh", "-c", "gunicorn main:app --bind 0.0.0.0:${PORT}"]
