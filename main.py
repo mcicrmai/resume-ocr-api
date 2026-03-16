@@ -1,16 +1,17 @@
 from flask import Flask, request, jsonify
+from flask_cors import CORS   # <-- add this
 from PIL import Image
 import pytesseract
 import os
 import re
 
-
 app = Flask(__name__)
+CORS(app)  # <-- enable CORS for all routes
 
 # Windows only: set Tesseract path
 if os.name == "nt":
     pytesseract.pytesseract.tesseract_cmd = r"C:\Program Files\Tesseract-OCR\tesseract.exe"
-# On Render (Linux), Tesseract will be installed via apt-get and available in PATH
+# On Railway/Render (Linux), Tesseract will be installed via apt-get and available in PATH
 
 def extract_worker_details(text):
     details = {}
@@ -34,14 +35,10 @@ def extract_worker_details(text):
 
 def extract_employment_history(text):
     history = []
-    # Find all date ranges
     date_pattern = r"(\d{2}/\d{2}/\d{4})\s+(\d{2}/\d{2}/\d{4})"
     matches = re.findall(date_pattern, text)
 
-    # Find all industries
     industries = re.findall(r"(Construction|Marine|Services|Other)", text, re.IGNORECASE)
-
-    # Find employer labels
     employers = re.findall(r"Employer\s*\d+", text, re.IGNORECASE)
 
     for i, (start_date, end_date) in enumerate(matches):
@@ -62,7 +59,8 @@ def ocr():
     if len(request.files) == 0:
         return jsonify({"error": "No file uploaded"}), 400
 
-    file = next(iter(request.files.values()))
+    # IMPORTANT: key must match widget formData.append("file", file)
+    file = request.files.get("file") or next(iter(request.files.values()))
     image = Image.open(file.stream)
     text = pytesseract.image_to_string(image)
 
@@ -84,6 +82,3 @@ def ping():
 if __name__ == '__main__':
     port = int(os.environ.get("PORT", 5000))
     app.run(host="0.0.0.0", port=port, debug=True)
-    
-    
-    #Design by Amudha
