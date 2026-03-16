@@ -1,7 +1,7 @@
-# Use a lightweight Python base image
+# Use lightweight Python image
 FROM python:3.11-slim
 
-# Install system dependencies including Tesseract OCR
+# Install Tesseract OCR
 RUN apt-get update && apt-get install -y \
     tesseract-ocr \
     libtesseract-dev \
@@ -10,12 +10,12 @@ RUN apt-get update && apt-get install -y \
 # Set working directory
 WORKDIR /app
 
-# Install Python dependencies first (better caching)
+# Install Python dependencies
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy the rest of the application code
+# Copy project files
 COPY . .
 
-# Run the app with Gunicorn, binding to Railway's dynamic port
-CMD ["gunicorn", "main:app", "--bind", "0.0.0.0:$PORT"]
+# Start server with Gunicorn
+CMD gunicorn main:app --bind 0.0.0.0:$PORT
