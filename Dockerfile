@@ -17,5 +17,8 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy project files
 COPY . .
 
-# Start server with Gunicorn
-CMD gunicorn main:app --bind 0.0.0.0:$PORT
+# Expose default port
+EXPOSE 5000
+
+# Start server with Gunicorn, fallback to 5000 if $PORT not set
+CMD ["sh", "-c", "exec gunicorn main:app --bind 0.0.0.0:${PORT:-5000}"]

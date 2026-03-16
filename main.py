@@ -35,13 +35,36 @@ def extract_worker_details(text):
 
 def extract_employment_history(text):
     history = []
-    date_pattern = r"(\d{2}/\d{2}/\d{4})\s+(\d{2}/\d{2}/\d{4})"
-    matches = re.findall(date_pattern, text)
-    industries = re.findall(r"(Construction|Marine|Services|Other)", text, re.IGNORECASE)
-    employers = re.findall(r"Employer\s*\d+", text, re.IGNORECASE)
-    for i, (start_date, end_date) in enumerate(matches):
-        employer = employers[i] if i < len(employers) else f"Employer {i+1}"
-        industry = industries[i] if i < len(industries) else "Unknown"
+    # Extract Employment History section
+    match = re.search(r"Employment History(.*)", text, re.DOTALL | re.IGNORECASE)
+    if not match:
+        return history
+
+    section = match.group(1)
+
+    # Extract employers
+    employers = re.findall(r"Employer\s*\d+", section, re.IGNORECASE)
+    employers.reverse()  # Match earliest dates first
+
+    # Extract all dates
+    dates = re.findall(r"(\d{2}/\d{2}/\d{4})", section)
+
+    # Extract industries
+    industries = re.findall(r"(Construction|Marine|Services|Other)", section, re.IGNORECASE)
+
+    # Pair dates: assume two consecutive dates = start and end
+    date_pairs = []
+    i = 0
+    while i < len(dates):
+        start_date = dates[i]
+        end_date = dates[i+1] if i+1 < len(dates) else ""
+        date_pairs.append((start_date, end_date))
+        i += 2
+
+    # Build history
+    for idx, employer in enumerate(employers):
+        start_date, end_date = date_pairs[idx] if idx < len(date_pairs) else ("","")
+        industry = industries[idx] if idx < len(industries) else "Unknown"
         history.append({
             "Employer": employer,
             "Start_Date": start_date,
